@@ -36,3 +36,27 @@
     transform: rotate(360deg);
   }
 }
+
+
+.App {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.Header {
+  width: 100%;
+}
+
+.MainContainer {
+  display: flex;
+  flex: 1; /* Takes up remaining space after header */
+}
+
+.Sidebar {
+  width: 250px; /* Set a fixed width for the sidebar */
+}
+
+.ChatArea {
+  flex: 1; /* Takes up the remaining space in the main area */
+}
