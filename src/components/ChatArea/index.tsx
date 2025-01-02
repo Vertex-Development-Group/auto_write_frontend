@@ -1,10 +1,11 @@
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ChatArea = ({ fileData, className }: { fileData: any; className: string }) => {
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [userInput, setUserInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [lastProcessedFileId, setLastProcessedFileId] = useState<string | null>(null);
 
   const handleSend = async () => {
     if (!userInput.trim()) return;
@@ -17,7 +18,7 @@ const ChatArea = ({ fileData, className }: { fileData: any; className: string })
   
     try {
       const articles = fileData.articles;
-      const batchSize = 5; // Adjust as needed
+      const batchSize = 1; // Adjust as needed
       const totalBatches = Math.ceil(articles.length / batchSize);
   
       console.log('Starting batch processing:', {
@@ -98,8 +99,14 @@ const ChatArea = ({ fileData, className }: { fileData: any; className: string })
     }
   };
 
-
-  
+  // Only auto-process new files from search
+  useEffect(() => {
+    if (fileData && fileData.articles && fileData.id !== lastProcessedFileId) {
+      setUserInput("Please generate an article about Bitcoin price trends based on these sources.");
+      handleSend();
+      setLastProcessedFileId(fileData.id);
+    }
+  }, [fileData]);
 
   return (
     <div className={`flex flex-col w-full h-full bg-gray-500 p-4 ${className}`}>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 interface Article {
   title: string;
@@ -9,6 +10,7 @@ const Sidebar = ({ className, onFileSelect }: { onFileSelect: any; className: st
   const [articleBatches, setArticleBatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastProcessedBatchId, setLastProcessedBatchId] = useState<string | null>(null);
 
   const handleFileClick = (fileData: any) => {
     onFileSelect(fileData); // Pass selected file data to parent component
@@ -17,11 +19,12 @@ const Sidebar = ({ className, onFileSelect }: { onFileSelect: any; className: st
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/articles');
-        const data = await response.json();
-        setArticleBatches(data); // Store the batches of articles
+        const response = await axios.get('http://localhost:5000/api/batches');
+        console.log('Raw API response:', response.data);
+        setArticleBatches(response.data.batches); // Extract just the batches array
         setLoading(false);
       } catch (err) {
+        console.error('Error fetching articles:', err);
         setError('Error fetching articles');
         setLoading(false);
       }
@@ -29,6 +32,17 @@ const Sidebar = ({ className, onFileSelect }: { onFileSelect: any; className: st
 
     fetchArticles();
   }, []);
+
+  useEffect(() => {
+    // Only process if there's a new batch and it hasn't been processed yet
+    if (articleBatches.length > 0) {
+      const latestBatch = articleBatches[0];
+      if (latestBatch.id !== lastProcessedBatchId) {
+        onFileSelect(latestBatch);
+        setLastProcessedBatchId(latestBatch.id);
+      }
+    }
+  }, [articleBatches]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -56,7 +70,7 @@ const Sidebar = ({ className, onFileSelect }: { onFileSelect: any; className: st
             className="p-2 bg-amber-700 rounded hover:bg-gray-500 hover:cursor-pointer"
             onClick={() => handleFileClick(batch)} // Pass the actual file data (articles) to the parent
           >
-            <h3 className="font-semibold">File {index + 1}</h3>
+            <h3 className="font-semibold">{batch.id}</h3>
             <p className="text-sm text-gray-300">{formattedDate}</p> {/* Display the creation time */}
           </li>
         );
